@@ -4,6 +4,8 @@ import { PORT } from "./config.js";
 const wss = new WebSocketServer({ port: PORT });
 
 wss.on("connection", function connection(ws) {
+  console.log("有人进入聊天室");
+
   ws.on("error", console.error);
 
   ws.on("message", function message(data, isBinary) {
