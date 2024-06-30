@@ -18,25 +18,31 @@ wss.on("connection", (ws) => {
     const msg = JSON.parse(data.toString());
 
     // 有人进入聊天室
-    if (msg.type == messageType.ENTER_ROOM_MSG) {
-      // 聊天室存在同名用户
+    if (msg.type == messageType.SOMEONE_ENTER_ROOM) {
+      // 如果聊天室存在同名用户则进入失败
       if (userList.map((user) => user.username).includes(msg.sender)) {
-        ws.send(JSON.stringify({ type: messageType.ENTER_ROOM_MSG_FAILED }));
+        ws.send(JSON.stringify({ type: messageType.ENTER_ROOM_FAILED }));
         return;
       }
 
-      userList.push({ username: msg.sender, ws });
-      console.log(`${new Date().toLocaleString()}: ${msg.sender}进入聊天室`);
+      // 进入成功
+      ws.send(
+        JSON.stringify({ type: messageType.ENTER_ROOM_SUCCESS, username: msg.sender, userCount: userList.length + 1 })
+      );
 
+      // 广播给聊天室其他成员
       broadcast_each((user) => {
         user.ws.send(
-          JSON.stringify({ type: messageType.ENTER_ROOM_MSG, username: msg.sender, userCount: userList.length })
+          JSON.stringify({ type: messageType.ENTER_ROOM_MSG, username: msg.sender, userCount: userList.length + 1 })
         );
       });
+      userList.push({ username: msg.sender, ws });
+
+      console.log(`${new Date().toLocaleString()}: ${msg.sender}进入聊天室`);
     }
 
     // 有人离开聊天室
-    if (msg.type == messageType.LEAVE_ROOM_MSG) {
+    else if (msg.type == messageType.SOMEONE_LEAVE_ROOM) {
       console.log(`${new Date().toLocaleString()}: ${msg.sender}离开聊天室`);
       const index = userList.map((user) => user.username).indexOf(msg.sender);
       if (index >= 0) {
@@ -44,13 +50,13 @@ wss.on("connection", (ws) => {
       }
       broadcast_each((user) => {
         user.ws.send(
-          JSON.stringify({ type: messageType.LEAVE_ROOM_MSG, username: msg.sender, userCount: userList.length })
+          JSON.stringify({ type: messageType.SOMEONE_LEAVE_ROOM, username: msg.sender, userCount: userList.length })
         );
       });
     }
 
     // 有人发送消息
-    if (msg.type == messageType.PLAIN_TEXT_MSG || msg.type == messageType.RICH_TEXT_MSG) {
+    else if (msg.type == messageType.PLAIN_TEXT_MSG || msg.type == messageType.RICH_TEXT_MSG) {
     }
   });
 });
