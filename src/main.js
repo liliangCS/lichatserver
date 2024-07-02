@@ -32,7 +32,12 @@ wss.on("connection", (ws) => {
       // 聊天室广播(包括自己)
       broadcast_each((user) => {
         user.ws.send(
-          JSON.stringify({ type: messageType.SOMEONE_ENTER_ROOM, username: msg.sender, userCount: userList.length })
+          JSON.stringify({
+            type: messageType.SOMEONE_ENTER_ROOM,
+            username: msg.sender,
+            userCount: userList.length,
+            timeStr: new Date().toLocaleString()
+          })
         );
       });
 
@@ -44,7 +49,12 @@ wss.on("connection", (ws) => {
       // 聊天室广播(包括自己)
       broadcast_each((user) => {
         user.ws.send(
-          JSON.stringify({ type: messageType.SOMEONE_LEAVE_ROOM, username: msg.sender, userCount: userList.length - 1 })
+          JSON.stringify({
+            type: messageType.SOMEONE_LEAVE_ROOM,
+            username: msg.sender,
+            userCount: userList.length - 1,
+            timeStr: new Date().toLocaleString()
+          })
         );
       });
 
@@ -74,16 +84,21 @@ wss.on("connection", (ws) => {
 
     if (closeUserIndex >= 0) {
       userList.splice(closeUserIndex, 1);
+
+      // 聊天室广播
+      broadcast_each((user) => {
+        user.ws.send(
+          JSON.stringify({
+            type: messageType.SOMEONE_LEAVE_ROOM,
+            username: closeUsername,
+            userCount: userList.length,
+            timeStr: new Date().toLocaleString()
+          })
+        );
+      });
+
+      console.log(`${new Date().toLocaleString()}: ${closeUsername}离开聊天室`);
     }
-
-    // 聊天室广播
-    broadcast_each((user) => {
-      user.ws.send(
-        JSON.stringify({ type: messageType.SOMEONE_LEAVE_ROOM, username: closeUsername, userCount: userList.length })
-      );
-    });
-
-    console.log(`${new Date().toLocaleString()}: ${closeUsername}离开聊天室`);
   });
 });
 
