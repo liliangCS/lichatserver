@@ -46,24 +46,24 @@ wss.on("connection", (ws) => {
 
     // 有人离开聊天室
     else if (msg.type == messageType.SOMEONE_LEAVE_ROOM) {
-      // 聊天室广播(包括自己)
-      broadcast_each((user) => {
-        user.ws.send(
-          JSON.stringify({
-            type: messageType.SOMEONE_LEAVE_ROOM,
-            username: msg.sender,
-            userCount: userList.length - 1,
-            timeStr: new Date().toLocaleString()
-          })
-        );
-      });
-
       const index = userList.map((user) => user.username).indexOf(msg.sender);
       if (index >= 0) {
+        // 聊天室广播(包括自己)
+        broadcast_each((user) => {
+          user.ws.send(
+            JSON.stringify({
+              type: messageType.SOMEONE_LEAVE_ROOM,
+              username: msg.sender,
+              userCount: userList.length - 1,
+              timeStr: new Date().toLocaleString()
+            })
+          );
+        });
         userList.splice(index, 1);
+        console.log(`${new Date().toLocaleString()}: ${msg.sender}离开聊天室`);
+      } else {
+        console.log(`${new Date().toLocaleString()}: ${msg.sender}离开聊天室错误，聊天室查无此人`);
       }
-
-      console.log(`${new Date().toLocaleString()}: ${msg.sender}离开聊天室`);
     }
 
     // 有人发送消息
