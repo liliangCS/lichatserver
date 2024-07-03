@@ -67,7 +67,12 @@ wss.on("connection", (ws) => {
     }
 
     // 有人发送消息
-    else if (msg.type == messageType.PLAIN_TEXT_MSG || msg.type == messageType.RICH_TEXT_MSG) {
+    else if (msg.type == messageType.SEND_PLAIN_TEXT || msg.type == messageType.SEND_RICH_TEXT) {
+      const msgData = { ...msg, timeStr: new Date().toLocaleString() };
+      // 聊天室广播(包括自己)
+      broadcast_each((user) => {
+        user.ws.send(JSON.stringify(msgData));
+      });
     }
   });
 
